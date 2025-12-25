@@ -1,0 +1,28 @@
+name: Trading Bot Scheduler
+
+on:
+  schedule:
+    # 7:30 AM – 9:59 AM IST
+    - cron: "* 2-4 * * 1-5"
+    # 10:00 AM – 3:00 PM IST
+    - cron: "* 5-9 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install requirements
+        run: pip install -r requirements.txt || true
+
+      - name: Run bot
+        run: python bot.py
