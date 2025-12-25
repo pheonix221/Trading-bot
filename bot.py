@@ -16,7 +16,7 @@ TOTP_SECRET = os.getenv("TOTP_SECRET")
 SHEET_URL = os.getenv("SHEET_URL")
 GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
 
-DRY_RUN = True   # 🔴 keep TRUE until fully confident
+DRY_RUN = False   # 🔴 keep TRUE until fully confident
 
 # ================================================================
 
@@ -61,7 +61,7 @@ def place_order(api, row):
     side = row["BUY/SELL"].upper()
     qty = int(row["Quantity"])
 
-    print(f"➡ {side} | Token={symbo# ============================================================
+    print(f"➡ {side} | Token={symbol)# ============================================================
 # REAL INTRADAY TRADING BOT (GITHUB ACTIONS)
 # Angel One SmartAPI + Google Sheets
 # ============================================================
