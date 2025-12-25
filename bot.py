@@ -61,7 +61,7 @@ def place_order(api, row):
     side = row["BUY/SELL"].upper()
     qty = int(row["Quantity"])
 
-    print(f"➡ {side} | Token={symbol)# ============================================================
+    print(f"➡ {side} | Token={symbol_token}")# ============================================================
 # REAL INTRADAY TRADING BOT (GITHUB ACTIONS)
 # Angel One SmartAPI + Google Sheets
 # ============================================================
