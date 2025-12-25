@@ -5,3 +5,4 @@ oauth2client
 pyotp
 smartapi-python
 logzero
+websocket-client
