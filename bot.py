@@ -1,76 +1,57 @@
-from datetime import datetime
+
+
+# ===================== DRY RUN TRADING BOT =====================
+# This version DOES NOT place real orders
+# It only prints order parameters to verify order capability
+# ===============================================================
+
+from SmartApi.smartConnect import SmartConnect
+from datetime import datetime, time
 import pytz
+import os
 
+# ===================== CONFIG =====================
+DRY_RUN = True           # 🔴 KEEP True for testing
+EXCHANGE = "NSE"
+QTY = 1
+
+# Test stock (cheap & liquid)
+SYMBOL_TOKEN = "3045"    # IDEA
+SIDE = "BUY"
+
+# ===================== TIME CHECK (IST) =====================
 ist = pytz.timezone("Asia/Kolkata")
-now = datetime.now(ist)
-
-current_time = now.time()
-from datetime import time
+now = datetime.now(ist).time()
 
 market_open = time(9, 15)
 market_close = time(15, 30)
 
-if not (market_open <= current_time <= market_close):
+print("Current IST Time:", now)
+
+if not (market_open <= now <= market_close):
     print("Outside market hours")
     exit()
-import os
-import time
-import datetime
-import pytz
-import pyotp
-import base64
-import gspread
-from SmartApi.smartConnect import SmartConnect
-from oauth2client.service_account import ServiceAccountCredentials
 
-# ================== CONFIG ==================
-IST = pytz.timezone("Asia/Kolkata")
+print("Market hours OK")
 
-TARGET_PCT = 0.01     # 1%
-SL_PCT = 0.01         # 1%
-QTY = 1
+# ===================== LOGIN =====================
+api_key = os.environ.get("API_KEY")
+client_id = os.environ.get("CLIENT_ID")
+password = os.environ.get("PASSWORD")
+totp = os.environ.get("TOTP")
 
-EXCHANGE = "NSE"
+smartapi = SmartConnect(api_key)
+session = smartapi.generateSession(client_id, password, totp)
 
-# ============== LOAD SECRETS ==============
-API_KEY = os.getenv("API_KEY")
-CLIENT_CODE = os.getenv("CLIENT_CODE")
-PASSWORD = os.getenv("PASSWORD")
-TOTP_SECRET = os.getenv("TOTP_SECRET")
-SHEET_URL = os.getenv("SHEET_URL")
-GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
+if not session.get("status"):
+    print("Login failed:", session)
+    exit()
 
-# ================== LOGIN ==================
-def angel_login():
-    totp = pyotp.TOTP(TOTP_SECRET).now()
-    api = SmartConnect(api_key=API_KEY)
-    session = api.generateSession(CLIENT_CODE, PASSWORD, totp)
+print("Login successful")
 
-    if not session or not session.get("status"):
-        raise Exception("Angel login failed")
-
-    print("✅ Angel login successful")
-    return api
-
-# ================== SHEET ==================
-def connect_sheet():
-    creds_json = base64.b64decode(GSHEET_CREDS_B64).decode("utf-8")
-    with open("credentials.json", "w") as f:
-        f.write(creds_json)
-
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "credentials.json", scope
-    )
-    client = gspread.authorize(creds)
-    return client.open_by_url(SHEET_URL).sheet1
-
-# ================== ORDERS ==================
+# ===================== ORDER FUNCTIONS =====================
 def place_market(api, token, side):
-    return api.placeOrder({
+    order_params = {
         "variety": "NORMAL",
         "tradingsymbol": "",
         "symboltoken": token,
@@ -80,12 +61,23 @@ def place_market(api, token, side):
         "producttype": "INTRADAY",
         "duration": "DAY",
         "quantity": QTY
-    })
+    }
+
+    print("MARKET ORDER PARAMS:", order_params)
+
+    if DRY_RUN:
+        print("DRY RUN: Market order would be placed here")
+        return None
+    else:
+        res = api.placeOrder(order_params)
+        print("ORDER RESPONSE:", res)
+        return res
+
 
 def place_sl(api, token, side, sl_price):
     exit_side = "SELL" if side == "BUY" else "BUY"
 
-    api.placeOrder({
+    sl_params = {
         "variety": "STOPLOSS",
         "tradingsymbol": "",
         "symboltoken": token,
@@ -96,73 +88,25 @@ def place_sl(api, token, side, sl_price):
         "duration": "DAY",
         "quantity": QTY,
         "triggerprice": round(sl_price, 1)
-    })
+    }
 
-def place_target(api, token, side, target_price):
-    exit_side = "SELL" if side == "BUY" else "BUY"
+    print("SL ORDER PARAMS:", sl_params)
 
-    api.placeOrder({
-        "variety": "NORMAL",
-        "tradingsymbol": "",
-        "symboltoken": token,
-        "transactiontype": exit_side,
-        "exchange": EXCHANGE,
-        "ordertype": "LIMIT",
-        "producttype": "INTRADAY",
-        "duration": "DAY",
-        "quantity": QTY,
-        "price": round(target_price, 1)
-    })
+    if DRY_RUN:
+        print("DRY RUN: SL order would be placed here")
+        return None
+    else:
+        res = api.placeOrder(sl_params)
+        print("SL RESPONSE:", res)
+        return res
 
-# ================== MAIN ==================
-def run_bot():
-    now = datetime.datetime.now(IST).time()
-    if not (datetime.time(9, 15) <= now <= datetime.time(15, 0)):
-        print("⏰ Outside market hours")
-        return
 
-    api = angel_login()
-    sheet = connect_sheet()
-    rows = sheet.get_all_records()
+# ===================== EXECUTION =====================
+print("Starting trade logic")
 
-    today = datetime.date.today().strftime("%Y-%m-%d")
+place_market(smartapi, SYMBOL_TOKEN, SIDE)
 
-    for i, row in enumerate(rows, start=2):
-        if row["Date"] != today:
-            continue
-        if row["Status"]:
-            continue
+# dummy SL price just for test
+place_sl(smartapi, SYMBOL_TOKEN, SIDE, sl_price=6.5)
 
-        token = str(row["symbol token"])
-        side = row["BUY/SELL"].upper()
-
-        print(f"➡ ENTRY {side} | Token={token}")
-
-        order_id = place_market(api, token, side)
-        time.sleep(2)
-
-        trades = api.tradeBook()["data"]
-        trade = next(t for t in trades if t["orderid"] == order_id)
-        entry = float(trade["averageprice"])
-
-        if side == "BUY":
-            sl_price = entry * (1 - SL_PCT)
-            target_price = entry * (1 + TARGET_PCT)
-        else:
-            sl_price = entry * (1 + SL_PCT)
-            target_price = entry * (1 - TARGET_PCT)
-
-        place_sl(api, token, side, sl_price)
-        place_target(api, token, side, target_price)
-
-        sheet.update_cell(i, 5, "EXECUTED")
-
-        print(
-            f"✅ ENTRY={entry:.2f} | "
-            f"SL={sl_price:.2f} | "
-            f"TARGET={target_price:.2f}"
-        )
-
-# ================== RUN ==================
-if __name__ == "__main__":
-    run_bot()
+print("Bot execution finished")
