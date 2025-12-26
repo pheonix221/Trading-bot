@@ -1,13 +1,25 @@
-# ================== IMPORTS ==================
-from datetime import datetime, time, date
+from datetime import datetime
 import pytz
-import sys
+
+ist = pytz.timezone("Asia/Kolkata")
+now = datetime.now(ist)
+
+current_time = now.time()
+from datetime import time
+
+market_open = time(9, 15)
+market_close = time(15, 30)
+
+if not (market_open <= current_time <= market_close):
+    print("Outside market hours")
+    exit()
 import os
-import time as time_module
+import time
+import datetime
+import pytz
 import pyotp
 import base64
 import gspread
-
 from SmartApi.smartConnect import SmartConnect
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -20,15 +32,11 @@ QTY = 1
 
 EXCHANGE = "NSE"
 
-MARKET_OPEN = time(9, 15)
-MARKET_CLOSE = time(15, 30)
-SQUARE_OFF_TIME = time(15, 0)   # 🔴 3:00 PM auto square-off
-
-# ================== LOAD SECRETS ==================
+# ============== LOAD SECRETS ==============
 API_KEY = os.getenv("API_KEY")
 CLIENT_CODE = os.getenv("CLIENT_CODE")
 PASSWORD = os.getenv("PASSWORD")
-TOTP_SECRET = "23HF32I3BXUB74NY6PZNLC7F3I"
+TOTP_SECRET = os.getenv("TOTP_SECRET")
 SHEET_URL = os.getenv("SHEET_URL")
 GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
 
@@ -39,12 +47,12 @@ def angel_login():
     session = api.generateSession(CLIENT_CODE, PASSWORD, totp)
 
     if not session or not session.get("status"):
-        raise Exception("❌ Angel login failed")
+        raise Exception("Angel login failed")
 
     print("✅ Angel login successful")
     return api
 
-# ================== GOOGLE SHEET ==================
+# ================== SHEET ==================
 def connect_sheet():
     creds_json = base64.b64decode(GSHEET_CREDS_B64).decode("utf-8")
     with open("credentials.json", "w") as f:
@@ -60,7 +68,7 @@ def connect_sheet():
     client = gspread.authorize(creds)
     return client.open_by_url(SHEET_URL).sheet1
 
-# ================== ORDER FUNCTIONS ==================
+# ================== ORDERS ==================
 def place_market(api, token, side):
     return api.placeOrder({
         "variety": "NORMAL",
@@ -106,59 +114,23 @@ def place_target(api, token, side, target_price):
         "price": round(target_price, 1)
     })
 
-# ================== AUTO SQUARE-OFF ==================
-def auto_square_off(api):
-    print("🔔 Running AUTO SQUARE-OFF")
-
-    positions = api.position()["data"] or []
-
-    for pos in positions:
-        qty = int(pos["netqty"])
-        if qty == 0:
-            continue
-
-        side = "SELL" if qty > 0 else "BUY"
-
-        print(f"🔄 Squaring off {pos['tradingsymbol']} | Qty={abs(qty)}")
-
-        api.placeOrder({
-            "variety": "NORMAL",
-            "tradingsymbol": pos["tradingsymbol"],
-            "symboltoken": pos["symboltoken"],
-            "transactiontype": side,
-            "exchange": pos["exchange"],
-            "ordertype": "MARKET",
-            "producttype": "INTRADAY",
-            "duration": "DAY",
-            "quantity": abs(qty)
-        })
-
-# ================== MAIN BOT ==================
+# ================== MAIN ==================
 def run_bot():
-    now_time = datetime.now(IST).time()
-    today = date.today().strftime("%Y-%m-%d")
-
-    print("⏰ Current IST Time:", now_time)
-
-    api = angel_login()
-
-    # 🔴 AUTO SQUARE-OFF CHECK
-    if now_time >= SQUARE_OFF_TIME:
-        auto_square_off(api)
-        return
-
-    # ⛔ Market time validation
-    if not (MARKET_OPEN <= now_time <= MARKET_CLOSE):
+    now = datetime.datetime.now(IST).time()
+    if not (datetime.time(9, 15) <= now <= datetime.time(15, 0)):
         print("⏰ Outside market hours")
         return
 
+    api = angel_login()
     sheet = connect_sheet()
     rows = sheet.get_all_records()
+
+    today = datetime.date.today().strftime("%Y-%m-%d")
 
     for i, row in enumerate(rows, start=2):
         if row["Date"] != today:
             continue
-        if row.get("Status"):
+        if row["Status"]:
             continue
 
         token = str(row["symbol token"])
@@ -167,7 +139,7 @@ def run_bot():
         print(f"➡ ENTRY {side} | Token={token}")
 
         order_id = place_market(api, token, side)
-        time_module.sleep(2)
+        time.sleep(2)
 
         trades = api.tradeBook()["data"]
         trade = next(t for t in trades if t["orderid"] == order_id)
@@ -194,5 +166,3 @@ def run_bot():
 # ================== RUN ==================
 if __name__ == "__main__":
     run_bot()
-
-
