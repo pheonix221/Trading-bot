@@ -28,7 +28,7 @@ SQUARE_OFF_TIME = time(15, 0)   # 🔴 3:00 PM auto square-off
 API_KEY = os.getenv("API_KEY")
 CLIENT_CODE = os.getenv("CLIENT_CODE")
 PASSWORD = os.getenv("PASSWORD")
-TOTP_SECRET = os.getenv("TOTP_SECRET")
+TOTP_SECRET = os.getenv("23HF32I3BXUB74NY6PZNLC7F3I")
 SHEET_URL = os.getenv("SHEET_URL")
 GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
 
