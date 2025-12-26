@@ -109,31 +109,44 @@ def place_target(api, token, side, target_price):
 
 # ===================== AUTO SQUARE-OFF =====================
 def auto_square_off(api):
-    positions = api.position()
+    try:
+        positions = api.position()
 
-    if not positions or "data" not in positions:
-        print("No open positions")
-        return
+        if not positions:
+            print("ℹ️ No positions response")
+            return
 
-    for pos in positions["data"]:
-        net_qty = int(pos["netqty"])
-        if net_qty != 0 and pos["producttype"] == "INTRADAY":
-            exit_side = "SELL" if net_qty > 0 else "BUY"
+        data = positions.get("data")
 
-            print(f"🔁 Squaring off {pos['tradingsymbol']} | Qty: {abs(net_qty)}")
+        if not data:
+            print("ℹ️ No open positions to square off")
+            return
+
+        for pos in data:
+            qty = int(pos.get("netqty", 0))
+            if qty == 0:
+                continue
+
+            side = "SELL" if qty > 0 else "BUY"
+
+            print(f"🔁 Square-off {pos['tradingsymbol']} | Qty={abs(qty)}")
 
             api.placeOrder({
                 "variety": "NORMAL",
                 "tradingsymbol": pos["tradingsymbol"],
                 "symboltoken": pos["symboltoken"],
-                "transactiontype": exit_side,
+                "transactiontype": side,
                 "exchange": pos["exchange"],
                 "ordertype": "MARKET",
                 "producttype": "INTRADAY",
                 "duration": "DAY",
-                "quantity": abs(net_qty)
+                "quantity": abs(qty)
             })
 
+        print("✅ Auto square-off completed")
+
+    except Exception as e:
+        print(f"⚠️ Square-off error: {e}")
 
 # ===================== MAIN BOT =====================
 def run_bot():
