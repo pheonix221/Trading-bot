@@ -1,3 +1,18 @@
+from datetime import datetime
+import pytz
+
+ist = pytz.timezone("Asia/Kolkata")
+now = datetime.now(ist)
+
+current_time = now.time()
+from datetime import time
+
+market_open = time(9, 15)
+market_close = time(15, 30)
+
+if not (market_open <= current_time <= market_close):
+    print("Outside market hours")
+    exit()
 import os
 import time
 import datetime
