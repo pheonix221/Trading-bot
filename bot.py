@@ -20,9 +20,9 @@ EXCHANGE = "NSE"
 
 
 # ===================== LOAD SECRETS =====================
-API_KEY = os.getenv("API_KEY")
-CLIENT_CODE = os.getenv("CLIENT_CODE")
-PASSWORD = os.getenv("PASSWORD")
+API_KEY = ("RZFN84ry")
+CLIENT_CODE = ("AAAA624603")
+PASSWORD = ("8320")
 TOTP_SECRET = ("23HF32I3BXUB74NY6PZNLC7F3I")
 SHEET_URL = os.getenv("SHEET_URL")
 GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
