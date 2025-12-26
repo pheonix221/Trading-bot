@@ -154,6 +154,28 @@ def run_bot():
 
         place_sl(api, token, side, sl_price)
         place_target(api, token, side, target_price)
+        def auto_square_off(api):
+    positions = api.position()
+    if not positions or "data" not in positions:
+        print("No positions found")
+        return
+
+    for pos in positions["data"]:
+        if int(pos["netqty"]) != 0 and pos["producttype"] == "INTRADAY":
+            side = "SELL" if int(pos["netqty"]) > 0 else "BUY"
+            print(f"🔁 Squaring off {pos['tradingsymbol']}")
+
+            api.placeOrder({
+                "variety": "NORMAL",
+                "tradingsymbol": pos["tradingsymbol"],
+                "symboltoken": pos["symboltoken"],
+                "transactiontype": side,
+                "exchange": pos["exchange"],
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "duration": "DAY",
+                "quantity": abs(int(pos["netqty"]))
+            })
 
         sheet.update_cell(i, 5, "EXECUTED")
 
