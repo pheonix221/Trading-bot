@@ -167,11 +167,11 @@ def run_bot():
     api = angel_login()
     sheet = connect_sheet()
     rows = sheet.get_all_records()
+    Fix rows not defined before loop
 
     today = datetime.now(IST).strftime("%Y-%m-%d")
-
-        
-for i, row in enumerate(rows, start=2):
+    
+for i , row in enumerate(rows, start=2):
 
     if row["Date"] != today:
         continue
