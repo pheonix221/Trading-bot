@@ -209,6 +209,7 @@ def run_bot():
           f"ENTRY={entry:.2f} | "
           f"SL={sl_price:.2f} | "
           f"TARGET={target_price:.2f}"
+        )
 
 # ===================== RUN =====================
 if __name__ == "__main__":
