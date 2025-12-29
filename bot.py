@@ -170,19 +170,6 @@ def run_bot():
 
     today = datetime.now(IST).strftime("%Y-%m-%d")
 
-    for i, row in enumerate(rows, start=2):
-        if row["Date"] != today:
-            continue
-
-        if row.get("Status") == "EXECUTED":
-            continue
-
-        symbol = row["Trading symbol"]
-        token = str(row["symbol token"])
-        qty = int(row["Quantity"])
-        side = row["BUY/SELL"].upper()
-
-        print(f"📥 ENTRY {side} | Token={token}")
         
 for i, row in enumerate(rows, start=2):
 
@@ -192,11 +179,13 @@ for i, row in enumerate(rows, start=2):
     if row.get("Status") == "EXECUTED":
         continue
 
+    symbol = row["Trading symbol"]
     token = str(row["symbol token"])
+    qty = int(row["Quantity"])
     side = row["BUY/SELL"].upper()
-    
-        order = place_market(api, symbol, token, side, qty)
-order_id = order.get("data", {}).get("orderid")
+
+    order = place_market(api, symbol, token, side, qty)
+    order_id = order.get("data", {}).get("orderid")
 
 time.sleep(3)
 
