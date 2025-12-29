@@ -179,25 +179,19 @@ for i, row in enumerate(rows, start=2):
     if row.get("Status") == "EXECUTED":
         continue
 
-    symbol = row["Trading symbol"]
-    token = str(row["symbol token"])
-    qty = int(row["Quantity"])
-    side = row["BUY/SELL"].upper()
-
     order = place_market(api, symbol, token, side, qty)
     order_id = order.get("data", {}).get("orderid")
 
-time.sleep(3)
+    time.sleep(3)
 
-trades = api.tradeBook().get("data", [])
+    trades = api.tradeBook().get("data", [])
+    trade = next((t for t in trades if t["orderid"] == order_id), None)
 
-trade = next((t for t in trades if t["orderid"] == order_id), None)
+    if not trade:
+        print("❌ Trade not found yet, skipping SL/Target")
+        continue
 
-if not trade:
-    print("❌ Trade not found yet, skipping SL/Target")
-    continue
-
-entry = float(trade["averageprice"])
+    entry = float(trade["averageprice"])
 
 if side == "BUY":
     sl_price = entry * (1 - SL_PCT)
