@@ -189,8 +189,8 @@ order_id = order.get("data", {}).get("orderid")
        time.sleep(3)
 
         trades = api.tradeBook().get("data", [])
-trade = next(t for t in trades if t["orderid"] == order_id)
-entry = float(trade["averageprice"])
+        trade = next(t for t in trades if t["orderid"] == order_id)
+        entry = float(trade["averageprice"])
 
         if side == "BUY":
             sl_price = entry * (1 - SL_PCT)
