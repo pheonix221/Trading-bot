@@ -63,46 +63,46 @@ def connect_sheet():
 def place_market(api, symbol, token, side, qty):
     order = api.placeOrder({
         "variety": "NORMAL",
-        "tradingsymbol": "",
+        "tradingsymbol": symbol,      # ✅ FIXED
         "symboltoken": token,
         "transactiontype": side,
         "exchange": EXCHANGE,
         "ordertype": "MARKET",
         "producttype": "INTRADAY",
         "duration": "DAY",
-        "quantity": QTY
+        "quantity": qty               # ✅ FIXED
     })
     return order
 
 
-def place_sl(api, token, side, sl_price):
+def place_sl(api, symbol, token, side, sl_price, qty):
     exit_side = "SELL" if side == "BUY" else "BUY"
     api.placeOrder({
         "variety": "STOPLOSS",
-        "tradingsymbol": "",
+        "tradingsymbol": symbol,      # ✅ FIXED
         "symboltoken": token,
         "transactiontype": exit_side,
         "exchange": EXCHANGE,
         "ordertype": "STOPLOSS_MARKET",
         "producttype": "INTRADAY",
         "duration": "DAY",
-        "quantity": QTY,
+        "quantity": qty,              # ✅ FIXED
         "triggerprice": round(sl_price, 1)
     })
 
 
-def place_target(api, token, side, target_price):
+def place_target(api, symbol, token, side, target_price, qty):
     exit_side = "SELL" if side == "BUY" else "BUY"
     api.placeOrder({
         "variety": "NORMAL",
-        "tradingsymbol": "",
+        "tradingsymbol": symbol,      # ✅ FIXED
         "symboltoken": token,
         "transactiontype": exit_side,
         "exchange": EXCHANGE,
         "ordertype": "LIMIT",
         "producttype": "INTRADAY",
         "duration": "DAY",
-        "quantity": QTY,
+        "quantity": qty,              # ✅ FIXED
         "price": round(target_price, 1)
     })
 
