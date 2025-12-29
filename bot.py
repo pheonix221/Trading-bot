@@ -203,7 +203,7 @@ else:
 place_sl(api, symbol, token, side, sl_price, qty)
 place_target(api, symbol, token, side, target_price, qty)
 
-        sheet.update_cell(i, 8, "EXECUTED")
+sheet.update_cell(i, 8, "EXECUTED")
 
         print(
             f"✅ ENTRY={entry:.2f} | "
