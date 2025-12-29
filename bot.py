@@ -152,14 +152,12 @@ def auto_square_off(api):
 def run_bot():
     now = datetime.now(IST).time()
 
-    # 🔴 AUTO SQUARE-OFF AT 3:00 PM
     if now >= time(15, 0):
         print("⏰ 3:00 PM reached — Auto square-off")
         api = angel_login()
         auto_square_off(api)
         return
 
-    # NORMAL MARKET HOURS
     if not (time(9, 15) <= now < time(15, 0)):
         print("Outside market hours")
         return
@@ -168,39 +166,51 @@ def run_bot():
     sheet = connect_sheet()
     rows = sheet.get_all_records()
     today = datetime.now(IST).strftime("%Y-%m-%d")
-    
-for i , row in enumerate(rows, start=2):
 
-    if row["Date"] != today:
-        continue
+    for i, row in enumerate(rows, start=2):   # ✅ MOVED INSIDE
+        if row["Date"] != today:
+            continue
 
-    if row.get("Status") == "EXECUTED":
-        continue
+        if row.get("Status") == "EXECUTED":
+            continue
 
-    order = place_market(api, symbol, token, side, qty)
-    order_id = order.get("data", {}).get("orderid")
+        symbol = row["Symbol"]
+        token = str(row["Token"])
+        side = row["Side"]
+        qty = int(row.get("Qty", QTY))
 
-    time.sleep(3)
+        order = place_market(api, symbol, token, side, qty)
+        order_id = order.get("data", {}).get("orderid")
 
-    trades = api.tradeBook().get("data", [])
-    trade = next((t for t in trades if t["orderid"] == order_id), None)
+        t.sleep(3)
 
-    if not trade:
-        print("❌ Trade not found yet, skipping SL/Target")
-        continue
+        trades = api.tradeBook().get("data", [])
+        trade = next((x for x in trades if x["orderid"] == order_id), None)
 
-    entry = float(trade["averageprice"])
+        if not trade:
+            print("❌ Trade not found yet, skipping SL/Target")
+            continue
 
-if side == "BUY":
-    sl_price = entry * (1 - SL_PCT)
-    target_price = entry * (1 + TARGET_PCT)
-else:
-    sl_price = entry * (1 + SL_PCT)
-    target_price = entry * (1 - TARGET_PCT)
+        entry = float(trade["averageprice"])
 
-place_sl(api, symbol, token, side, sl_price, qty)
-place_target(api, symbol, token, side, target_price, qty)
+        if side == "BUY":
+            sl_price = entry * (1 - SL_PCT)
+            target_price = entry * (1 + TARGET_PCT)
+        else:
+            sl_price = entry * (1 + SL_PCT)
+            target_price = entry * (1 - TARGET_PCT)
 
+        place_sl(api, symbol, token, side, sl_price, qty)
+        place_target(api, symbol, token, side, target_price, qty)
+
+        sheet.update_cell(i, 8, "EXECUTED")
+
+        print(
+            f"ENTRY={entry:.2f} | "
+            f"SL={sl_price:.2f} | "
+            f"TARGET={target_price:.2f}"
+        )
+        
 sheet.update_cell(i, 8, "EXECUTED")
 
 print(
