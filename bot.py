@@ -205,11 +205,12 @@ place_target(api, symbol, token, side, target_price, qty)
 
 sheet.update_cell(i, 8, "EXECUTED")
 
-        print(
-            f"✅ ENTRY={entry:.2f} | "
-            f"SL={sl_price:.2f} | "
-            f"TARGET={target_price:.2f}"
-        )
+print(
+    f"ENTRY={entry:.2f} | "
+    f"SL={sl_price:.2f} | "
+    f"TARGET={target_price:.2f}"
+)
+
 
 
 # ===================== RUN =====================
