@@ -184,12 +184,13 @@ def run_bot():
 
         print(f"📥 ENTRY {side} | Token={token}")
 
-        order_id = place_market(api, token, side)
-        t.sleep(2)
+        order = place_market(api, symbol, token, side, qty)
+order_id = order.get("data", {}).get("orderid")
+       time.sleep(3)
 
-        trades = api.tradeBook()["data"]
-        trade = next(t for t in trades if t["orderid"] == order_id)
-        entry = float(trade["averageprice"])
+        trades = api.tradeBook().get("data", [])
+trade = next(t for t in trades if t["orderid"] == order_id)
+entry = float(trade["averageprice"])
 
         if side == "BUY":
             sl_price = entry * (1 - SL_PCT)
@@ -198,10 +199,10 @@ def run_bot():
             sl_price = entry * (1 + SL_PCT)
             target_price = entry * (1 - TARGET_PCT)
 
-        place_sl(api, token, side, sl_price)
-        place_target(api, token, side, target_price)
+        place_sl(api, symbol, token, side, sl_price, qty)
+place_target(api, symbol, token, side, target_price, qty)
 
-        sheet.update_cell(i, 5, "EXECUTED")
+        sheet.update_cell(i, 8, "EXECUTED")
 
         print(
             f"✅ ENTRY={entry:.2f} | "
