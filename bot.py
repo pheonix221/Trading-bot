@@ -183,7 +183,18 @@ def run_bot():
         side = row["BUY/SELL"].upper()
 
         print(f"📥 ENTRY {side} | Token={token}")
+        
+for i, row in enumerate(rows, start=2):
 
+    if row["Date"] != today:
+        continue
+
+    if row.get("Status") == "EXECUTED":
+        continue
+
+    token = str(row["symbol token"])
+    side = row["BUY/SELL"].upper()
+    
         order = place_market(api, symbol, token, side, qty)
 order_id = order.get("data", {}).get("orderid")
 
