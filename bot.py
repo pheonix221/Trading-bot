@@ -200,8 +200,8 @@ else:
     sl_price = entry * (1 + SL_PCT)
     target_price = entry * (1 - TARGET_PCT)
 
-        place_sl(api, symbol, token, side, sl_price, qty)
-        place_target(api, symbol, token, side, target_price)
+place_sl(api, symbol, token, side, sl_price, qty)
+place_target(api, symbol, token, side, target_price, qty)
 
         sheet.update_cell(i, 8, "EXECUTED")
 
