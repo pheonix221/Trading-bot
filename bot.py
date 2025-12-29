@@ -60,7 +60,7 @@ def connect_sheet():
 
 
 # ===================== ORDERS =====================
-def place_market(api, token, side):
+def place_market(api, symbol, token, side, qty):
     order = api.placeOrder({
         "variety": "NORMAL",
         "tradingsymbol": "",
@@ -177,7 +177,9 @@ def run_bot():
         if row.get("Status") == "EXECUTED":
             continue
 
+        symbol = row["Trading symbol"]
         token = str(row["symbol token"])
+        qty = int(row["Quantity"])
         side = row["BUY/SELL"].upper()
 
         print(f"📥 ENTRY {side} | Token={token}")
