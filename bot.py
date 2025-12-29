@@ -193,15 +193,15 @@ trades = api.tradeBook().get("data", [])
 trade = next(t for t in trades if t["orderid"] == order_id)
 entry = float(trade["averageprice"])
 
-        if side == "BUY":
-            sl_price = entry * (1 - SL_PCT)
-            target_price = entry * (1 + TARGET_PCT)
-        else:
-            sl_price = entry * (1 + SL_PCT)
-            target_price = entry * (1 - TARGET_PCT)
+if side == "BUY":
+    sl_price = entry * (1 - SL_PCT)
+    target_price = entry * (1 + TARGET_PCT)
+else:
+    sl_price = entry * (1 + SL_PCT)
+    target_price = entry * (1 - TARGET_PCT)
 
         place_sl(api, symbol, token, side, sl_price, qty)
-place_target(api, symbol, token, side, target_price, qty)
+        place_target(api, symbol, token, side, target_price)
 
         sheet.update_cell(i, 8, "EXECUTED")
 
