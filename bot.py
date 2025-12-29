@@ -190,7 +190,13 @@ order_id = order.get("data", {}).get("orderid")
 time.sleep(3)
 
 trades = api.tradeBook().get("data", [])
-trade = next(t for t in trades if t["orderid"] == order_id)
+
+trade = next((t for t in trades if t["orderid"] == order_id), None)
+
+if not trade:
+    print("❌ Trade not found yet, skipping SL/Target")
+    continue
+
 entry = float(trade["averageprice"])
 
 if side == "BUY":
