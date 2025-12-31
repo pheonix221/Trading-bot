@@ -3,14 +3,14 @@ name: Trading Bot Scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: '45 3 * * 1-5'   # 09:15 AM IST
+    - cron: '45 3 * * 1-5'   # 09:15 AM IST (Mon–Fri)
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -20,6 +20,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install smartapi-python logzero websocket-client pyotp pytz
-        - name: Run trading bot
-          run: python bot.py
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run trading bot
+        run: python bot.py
