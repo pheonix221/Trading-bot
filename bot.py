@@ -171,12 +171,17 @@ def run_bot():
         order_id = order.get("data", {}).get("orderid")
 
         trade = None
-for _ in range(5):  # retry up to ~25 seconds
+
+for _ in range(5):   # ✅ NOW INSIDE row loop
     t.sleep(5)
     trades = api.tradeBook().get("data", [])
     trade = next((x for x in trades if x["orderid"] == order_id), None)
     if trade:
-        break   # ✅ break is INSIDE the loop
+        break
+
+if not trade:
+    print("❌ Trade not found yet, skipping SL/Target")
+    continue   # ✅ now VALID
 
 if not trade:
     print("❌ Trade not found yet, skipping SL/Target")
