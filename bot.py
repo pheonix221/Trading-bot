@@ -193,14 +193,13 @@ else:
     
 
     place_sl(api, symbol, token, side, sl_price, qty)
-    place_target(api, symbol, token, side, target_price, qty)
-        
+place_target(api, symbol, token, side, target_price, qty)
 
-          print(
-          f"ENTRY={entry:.2f} | "
-          f"SL={sl_price:.2f} | "
-          f"TARGET={target_price:.2f}"
-        )
+print(
+    f"ENTRY={entry:.2f} | "
+    f"SL={sl_price:.2f} | "
+    f"TARGET={target_price:.2f}"
+)
 
 # ===================== RUN =====================
 if __name__ == "__main__":
