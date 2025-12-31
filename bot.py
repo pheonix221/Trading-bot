@@ -2,13 +2,9 @@ from datetime import datetime, time
 import pytz
 import os
 import time as t
-import base64
 import pyotp
-import gspread
 
 from SmartApi.smartConnect import SmartConnect
-from oauth2client.service_account import ServiceAccountCredentials
-
 
 # ===================== CONFIG =====================
 IST = pytz.timezone("Asia/Kolkata")
@@ -24,9 +20,6 @@ API_KEY = ("RZFN84ry")
 CLIENT_CODE = ("AAAA624603")
 PASSWORD = ("8320")
 TOTP_SECRET = ("23HF32I3BXUB74NY6PZNLC7F3I")
-SHEET_URL = os.getenv("SHEET_URL")
-GSHEET_CREDS_B64 = os.getenv("GSHEET_CREDS_B64")
-
 
 # ===================== LOGIN =====================
 def angel_login():
@@ -39,24 +32,6 @@ def angel_login():
 
     print("✅ Angel login successful")
     return api
-
-
-# ===================== GOOGLE SHEET =====================
-def connect_sheet():
-    creds_json = base64.b64decode(GSHEET_CREDS_B64).decode("utf-8")
-    with open("credentials.json", "w") as f:
-        f.write(creds_json)
-
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "credentials.json", scope
-    )
-    client = gspread.authorize(creds)
-    return client.open_by_url(SHEET_URL).sheet1
 
 
 # ===================== ORDERS =====================
@@ -170,8 +145,14 @@ def run_bot():
         return
 
     api = angel_login()
-    sheet = connect_sheet()
-    rows = sheet.get_all_records()
+    rows = [
+    {
+        "Symbol": "IDEA-EQ",
+        "Token": "14366",   
+        "Side": "BUY",
+        "Qty": 1
+    }
+    ]
     today = datetime.now(IST).strftime("%Y-%m-%d")
 
     for i, row in enumerate(rows, start=2):   # ✅ MOVED INSIDE
@@ -213,7 +194,6 @@ def run_bot():
         place_sl(api, symbol, token, side, sl_price, qty)
         place_target(api, symbol, token, side, target_price, qty)
         
-        sheet.update_cell(i, 8, "EXECUTED")
 
         print(
           f"ENTRY={entry:.2f} | "
