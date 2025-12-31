@@ -189,10 +189,13 @@ def run_bot():
         order = place_market(api, symbol, token, side, qty)
         order_id = order.get("data", {}).get("orderid")
 
-        t.sleep(3)
-
-        trades = api.tradeBook().get("data", [])
-        trade = next((x for x in trades if x["orderid"] == order_id), None)
+        trade = None
+        for _ in range(5):   # retry up to ~25 seconds
+           t.sleep(5)
+           trades = api.tradeBook().get("data", [])
+           trade = next((x for x in trades if x["orderid"] == order_id), None)
+    if trade:
+        break
 
         if not trade:
             print("❌ Trade not found yet, skipping SL/Target")
