@@ -192,8 +192,8 @@ else:
     target_price = entry * (1 - TARGET_PCT)
     
 
-        place_sl(api, symbol, token, side, sl_price, qty)
-        place_target(api, symbol, token, side, target_price, qty)
+    place_sl(api, symbol, token, side, sl_price, qty)
+    place_target(api, symbol, token, side, target_price, qty)
         
 
         print(
