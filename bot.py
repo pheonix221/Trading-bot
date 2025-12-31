@@ -182,7 +182,7 @@ if not trade:
     print("❌ Trade not found yet, skipping SL/Target")
     continue   # ✅ continue is inside row loop
 
-        entry = float(trade["averageprice"])
+    entry = float(trade["averageprice"])
 
         if side == "BUY":
             sl_price = entry * (1 - SL_PCT)
