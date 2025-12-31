@@ -145,18 +145,23 @@ def run_bot():
         return
 
     api = angel_login()
+
     rows = [
-    {
-        "Symbol": "IDEA-EQ",
-        "Token": "14366",   
-        "Side": "BUY",
-        "Qty": 1
-    }
+        {
+            "Symbol": "IDEA-EQ",
+            "Token": "14366",
+            "Side": "BUY",
+            "Qty": 1
+        }
     ]
+
     today = datetime.now(IST).strftime("%Y-%m-%d")
 
-    for i, row in enumerate(rows, start=2):   # ✅ MOVED INSIDE
-        if row["Date"] != today:
+    for i, row in enumerate(rows, start=2):
+
+        # ⚠️ These keys do NOT exist in your row,
+        # keeping them only because they were in your code
+        if row.get("Date") and row["Date"] != today:
             continue
 
         if row.get("Status") == "EXECUTED":
@@ -170,41 +175,40 @@ def run_bot():
         order = place_market(api, symbol, token, side, qty)
         order_id = order.get("data", {}).get("orderid")
 
-trade = None
+        trade = None
 
-    for _ in range(5):
-        t.sleep(5)
-        trades = api.tradeBook().get("data", [])
-        trade = next((x for x in trades if x["orderid"] == order_id), None)
-        if trade:
-            break
+        for _ in range(5):
+            t.sleep(5)
+            trades = api.tradeBook().get("data", [])
+            trade = next(
+                (x for x in trades if x["orderid"] == order_id),
+                None
+            )
+            if trade:
+                break
 
-    if not trade:
-        print("❌ Trade not found yet, skipping SL/Target")
-        continue
+        if not trade:
+            print("❌ Trade not found yet, skipping SL/Target")
+            continue
 
-if not trade:
-    print("❌ Trade not found yet, skipping SL/Target")
-    continue   # ✅ continue is inside row loop
+        entry = float(trade["averageprice"])
 
-    entry = float(trade["averageprice"])
+        if side == "BUY":
+            sl_price = entry * (1 - SL_PCT)
+            target_price = entry * (1 + TARGET_PCT)
+        else:
+            sl_price = entry * (1 + SL_PCT)
+            target_price = entry * (1 - TARGET_PCT)
 
-if side == "BUY":
-    sl_price = entry * (1 - SL_PCT)
-    target_price = entry * (1 + TARGET_PCT)
-else:
-    sl_price = entry * (1 + SL_PCT)
-    target_price = entry * (1 - TARGET_PCT)
-    
+        place_sl(api, symbol, token, side, sl_price, qty)
+        place_target(api, symbol, token, side, target_price, qty)
 
-    place_sl(api, symbol, token, side, sl_price, qty)
-place_target(api, symbol, token, side, target_price, qty)
+        print(
+            f"ENTRY={entry:.2f} | "
+            f"SL={sl_price:.2f} | "
+            f"TARGET={target_price:.2f}"
+        )
 
-print(
-    f"ENTRY={entry:.2f} | "
-    f"SL={sl_price:.2f} | "
-    f"TARGET={target_price:.2f}"
-)
 
 # ===================== RUN =====================
 if __name__ == "__main__":
