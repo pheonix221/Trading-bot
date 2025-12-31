@@ -176,7 +176,7 @@ def run_bot():
            trades = api.tradeBook().get("data", [])
            trade = next((x for x in trades if x["orderid"] == order_id), None)
     if trade:
-        continue
+        break
 
         if not trade:
             print("❌ Trade not found yet, skipping SL/Target")
