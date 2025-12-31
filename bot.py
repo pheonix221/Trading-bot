@@ -196,7 +196,7 @@ else:
     place_target(api, symbol, token, side, target_price, qty)
         
 
-        print(
+          print(
           f"ENTRY={entry:.2f} | "
           f"SL={sl_price:.2f} | "
           f"TARGET={target_price:.2f}"
