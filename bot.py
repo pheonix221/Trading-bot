@@ -63,15 +63,22 @@ def connect_sheet():
 def place_market(api, symbol, token, side, qty):
     order = api.placeOrder({
         "variety": "NORMAL",
-        "tradingsymbol": symbol,      # ✅ FIXED
+        "tradingsymbol": symbol,
         "symboltoken": token,
         "transactiontype": side,
         "exchange": EXCHANGE,
         "ordertype": "MARKET",
         "producttype": "INTRADAY",
         "duration": "DAY",
-        "quantity": qty               # ✅ FIXED
+        "quantity": qty
     })
+
+    print("🧾 ENTRY ORDER RESPONSE:", order)
+
+    if not order or order.get("status") != True:
+        print("❌ Entry order rejected")
+        return None
+
     return order
 
 
