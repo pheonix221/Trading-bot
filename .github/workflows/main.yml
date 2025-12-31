@@ -20,7 +20,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install smartapi-python logzero websocket-client pyotp pytz gspread oauth2client
-
-      - name: Run trading bot
-        run: python bot.py
+          pip install smartapi-python logzero websocket-client pyotp pytz
+        - name: Run trading bot
+          run: python bot.py
